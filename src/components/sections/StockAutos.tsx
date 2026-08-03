@@ -3,8 +3,8 @@ import { useState } from "react";
 import Image from "next/image";
 
 // ─── Datos de los autos ───────────────────────────────────────
-// Para agregar o editar un auto: modificá este array.
-// "fotos" son las rutas relativas desde /public/
+// Para marcar un auto como vendido: agregá vendido: true en su objeto.
+// Para agregar un auto nuevo: copiá un objeto y editá los datos.
 const AUTOS = [
   {
     id: "a2m",
@@ -16,6 +16,7 @@ const AUTOS = [
     color: "Gris",
     transmision: "Manual",
     combustible: "Nafta",
+    vendido: false,
     fotos: [
       "/autos/a2m/1.jpg",
       "/autos/a2m/2.jpg",
@@ -34,6 +35,7 @@ const AUTOS = [
     color: "Gris",
     transmision: "Manual",
     combustible: "Nafta",
+    vendido: false,
     fotos: [
       "/autos/p5/1.jpg",
       "/autos/p5/2.jpg",
@@ -52,7 +54,7 @@ const AUTOS = [
     color: "Plata",
     transmision: "Manual",
     combustible: "Nafta",
-    vendido: true,
+    vendido: true,   // ← VENDIDO
     fotos: [
       "/autos/aa/1.jpg",
       "/autos/aa/2.jpg",
@@ -71,6 +73,7 @@ const AUTOS = [
     color: "Blanco",
     transmision: "Manual",
     combustible: "Nafta",
+    vendido: false,
     fotos: [
       "/autos/p03/1.jpg",
       "/autos/p03/2.jpg",
@@ -81,19 +84,22 @@ const AUTOS = [
   },
 ];
 
-const WA_NUMBER = "5491171576353"; // ← tu número de WhatsApp
+const WA_NUMBER = "5491171576353";
 
-// ─── Componente tarjeta individual ───────────────────────────
-function AutoCard({ auto }: { auto: typeof AUTOS[0] }) {
+// ─── Tarjeta individual ───────────────────────────────────────
+type Auto = typeof AUTOS[0];
+
+function AutoCard({ auto }: { auto: Auto }) {
   const [fotoActiva, setFotoActiva] = useState(0);
   const waUrl = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(auto.waMsg)}`;
 
   return (
-    <article className={`bg-white rounded-2xl overflow-hidden shadow-sm border flex flex-col transition-shadow duration-300 ${
-      auto.vendido ? "border-gray-200 opacity-75" : "border-gray-100 hover:shadow-lg"
-    }`}>
-
-      {/* Galería de fotos */}
+    <article
+      className={`bg-white rounded-2xl overflow-hidden shadow-sm border flex flex-col transition-shadow duration-300 ${
+        auto.vendido ? "border-gray-200 opacity-75" : "border-gray-100 hover:shadow-lg"
+      }`}
+    >
+      {/* Galería */}
       <div className="relative bg-gray-100 aspect-[4/3] overflow-hidden">
         <Image
           src={auto.fotos[fotoActiva]}
@@ -103,10 +109,10 @@ function AutoCard({ auto }: { auto: typeof AUTOS[0] }) {
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
         />
 
-        {/* Badge VENDIDO — solo si está vendido */}
+        {/* Sello VENDIDO */}
         {auto.vendido && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <div className="bg-red-600 text-white font-black text-2xl px-8 py-3 rounded-xl rotate-[-12deg] shadow-2xl tracking-widest uppercase">
+            <div className="bg-red-600 text-white font-black text-2xl px-8 py-3 rounded-xl -rotate-12 shadow-2xl tracking-widest uppercase">
               Vendido
             </div>
           </div>
@@ -120,13 +126,15 @@ function AutoCard({ auto }: { auto: typeof AUTOS[0] }) {
         )}
 
         {/* Badge año */}
-        <div className={`absolute top-3 right-3 text-white text-xs font-bold px-3 py-1 rounded-full ${
-          auto.vendido ? "bg-gray-500" : "bg-brand-red"
-        }`}>
+        <div
+          className={`absolute top-3 right-3 text-white text-xs font-bold px-3 py-1 rounded-full ${
+            auto.vendido ? "bg-gray-500" : "bg-brand-red"
+          }`}
+        >
           {auto.año}
         </div>
 
-        {/* Miniaturas — solo si no está vendido */}
+        {/* Miniaturas */}
         {!auto.vendido && (
           <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
             {auto.fotos.map((foto, i) => (
@@ -153,19 +161,14 @@ function AutoCard({ auto }: { auto: typeof AUTOS[0] }) {
         )}
       </div>
 
-      {/* Info del auto */}
+      {/* Datos */}
       <div className="p-5 flex flex-col flex-1">
         <p className="text-xs font-bold text-brand-red uppercase tracking-widest mb-1">
           {auto.marca}
         </p>
-        <h3 className="text-xl font-black text-gray-900 mb-1">
-          {auto.modelo}
-        </h3>
-        <p className="text-sm font-semibold text-gray-500 mb-4">
-          {auto.version}
-        </p>
+        <h3 className="text-xl font-black text-gray-900 mb-1">{auto.modelo}</h3>
+        <p className="text-sm font-semibold text-gray-500 mb-4">{auto.version}</p>
 
-        {/* Specs */}
         <div className="grid grid-cols-2 gap-2 mb-5">
           {[
             { label: "Año",         value: auto.año },
@@ -180,13 +183,13 @@ function AutoCard({ auto }: { auto: typeof AUTOS[0] }) {
           ))}
         </div>
 
-        {/* CTA — desactivado si está vendido */}
+        {/* Botón */}
         {auto.vendido ? (
-          <div className="mt-auto w-full flex items-center justify-center gap-2 bg-gray-200 text-gray-400 font-bold text-sm py-3 px-4 rounded-xl cursor-not-allowed">
+          <div className="mt-auto w-full flex items-center justify-center gap-2 bg-gray-200 text-gray-400 font-bold text-sm py-3 px-4 rounded-xl cursor-not-allowed select-none">
             ✓ Este auto ya fue vendido
           </div>
         ) : (
-          
+          <a
             href={waUrl}
             target="_blank"
             rel="noopener noreferrer"
@@ -208,8 +211,6 @@ export default function StockAutos() {
   return (
     <section id="stock" className="py-20 bg-gray-50" aria-labelledby="stock-title">
       <div className="max-w-6xl mx-auto px-4">
-
-        {/* Header */}
         <div className="text-center mb-12">
           <span className="inline-block bg-brand-red/10 text-brand-red text-xs font-bold uppercase tracking-widest px-4 py-2 rounded-full mb-4">
             Stock disponible
@@ -222,14 +223,12 @@ export default function StockAutos() {
           </p>
         </div>
 
-        {/* Grid de autos */}
         <div className="grid sm:grid-cols-2 xl:grid-cols-4 gap-6">
           {AUTOS.map((auto) => (
             <AutoCard key={auto.id} auto={auto} />
           ))}
         </div>
 
-        {/* CTA inferior */}
         <div className="mt-12 text-center">
           <p className="text-gray-500 text-sm mb-4">
             ¿Tenés un auto para vender? Te compramos hoy.
