@@ -16,7 +16,7 @@ const AUTOS = [
     color: "Gris",
     transmision: "Manual",
     combustible: "Nafta",
-    vendido: false,
+    vendido: true,
     fotos: [
       "/autos/a2m/1.jpg",
       "/autos/a2m/2.jpg",
@@ -54,7 +54,7 @@ const AUTOS = [
     color: "Plata",
     transmision: "Manual",
     combustible: "Nafta",
-    vendido: true,   // ← VENDIDO
+    vendido: false,   // ← VENDIDO
     fotos: [
       "/autos/aa/1.jpg",
       "/autos/aa/2.jpg",
