@@ -3,8 +3,8 @@ import { useState } from "react";
 import Image from "next/image";
 
 // ─── Datos de los autos ───────────────────────────────────────
-// Para marcar un auto como vendido: agregá vendido: true en su objeto.
-// Para agregar un auto nuevo: copiá un objeto y editá los datos.
+// Para marcar un auto como vendido: cambiá vendido: true
+// Para agregar fotos: sumá más rutas al array "fotos"
 const AUTOS = [
   {
     id: "a2m",
@@ -16,7 +16,7 @@ const AUTOS = [
     color: "Gris",
     transmision: "Manual",
     combustible: "Nafta",
-    vendido: true,
+    vendido: false,
     fotos: [
       "/autos/a2m/1.jpg",
       "/autos/a2m/2.jpg",
@@ -54,7 +54,7 @@ const AUTOS = [
     color: "Plata",
     transmision: "Manual",
     combustible: "Nafta",
-    vendido: false,   // ← VENDIDO
+    vendido: true,
     fotos: [
       "/autos/aa/1.jpg",
       "/autos/aa/2.jpg",
@@ -86,12 +86,16 @@ const AUTOS = [
 
 const WA_NUMBER = "5491171576353";
 
-// ─── Tarjeta individual ───────────────────────────────────────
 type Auto = typeof AUTOS[0];
 
+// ─── Tarjeta individual ───────────────────────────────────────
 function AutoCard({ auto }: { auto: Auto }) {
   const [fotoActiva, setFotoActiva] = useState(0);
+  const total = auto.fotos.length;
   const waUrl = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(auto.waMsg)}`;
+
+  const anterior = () => setFotoActiva((prev) => (prev - 1 + total) % total);
+  const siguiente = () => setFotoActiva((prev) => (prev + 1) % total);
 
   return (
     <article
@@ -99,11 +103,11 @@ function AutoCard({ auto }: { auto: Auto }) {
         auto.vendido ? "border-gray-200 opacity-75" : "border-gray-100 hover:shadow-lg"
       }`}
     >
-      {/* Galería */}
-      <div className="relative bg-gray-100 aspect-[4/3] overflow-hidden">
+      {/* ── Galería ── */}
+      <div className="relative bg-gray-100 aspect-[4/3] overflow-hidden group">
         <Image
           src={auto.fotos[fotoActiva]}
-          alt={`${auto.marca} ${auto.modelo} ${auto.año} - foto ${fotoActiva + 1}`}
+          alt={`${auto.marca} ${auto.modelo} ${auto.año} - foto ${fotoActiva + 1} de ${total}`}
           fill
           className={`object-cover transition-opacity duration-300 ${auto.vendido ? "grayscale" : ""}`}
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 25vw"
@@ -118,6 +122,30 @@ function AutoCard({ auto }: { auto: Auto }) {
           </div>
         )}
 
+        {/* Flechas — solo si hay más de 1 foto y no está vendido */}
+        {!auto.vendido && total > 1 && (
+          <>
+            <button
+              onClick={anterior}
+              className="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/75 text-white rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+              aria-label="Foto anterior"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" />
+              </svg>
+            </button>
+            <button
+              onClick={siguiente}
+              className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 bg-black/50 hover:bg-black/75 text-white rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 focus:opacity-100"
+              aria-label="Foto siguiente"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
+            </button>
+          </>
+        )}
+
         {/* Badge color */}
         {!auto.vendido && (
           <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full">
@@ -126,42 +154,39 @@ function AutoCard({ auto }: { auto: Auto }) {
         )}
 
         {/* Badge año */}
-        <div
-          className={`absolute top-3 right-3 text-white text-xs font-bold px-3 py-1 rounded-full ${
-            auto.vendido ? "bg-gray-500" : "bg-brand-red"
-          }`}
-        >
+        <div className={`absolute top-3 right-3 text-white text-xs font-bold px-3 py-1 rounded-full ${
+          auto.vendido ? "bg-gray-500" : "bg-brand-red"
+        }`}>
           {auto.año}
         </div>
 
-        {/* Miniaturas */}
-        {!auto.vendido && (
-          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-2">
-            {auto.fotos.map((foto, i) => (
+        {/* Contador de fotos — ej: 2 / 6 */}
+        {!auto.vendido && total > 1 && (
+          <div className="absolute bottom-3 right-3 bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-2 py-1 rounded-full">
+            {fotoActiva + 1} / {total}
+          </div>
+        )}
+
+        {/* Puntos indicadores */}
+        {!auto.vendido && total > 1 && (
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex gap-1.5">
+            {auto.fotos.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setFotoActiva(i)}
-                className={`w-10 h-10 rounded-lg overflow-hidden border-2 transition-all ${
+                className={`rounded-full transition-all ${
                   fotoActiva === i
-                    ? "border-white scale-110 shadow-lg"
-                    : "border-white/40 opacity-70 hover:opacity-100"
+                    ? "w-4 h-2 bg-white"
+                    : "w-2 h-2 bg-white/50 hover:bg-white/80"
                 }`}
-                aria-label={`Ver foto ${i + 1}`}
-              >
-                <Image
-                  src={foto}
-                  alt=""
-                  width={40}
-                  height={40}
-                  className="object-cover w-full h-full"
-                />
-              </button>
+                aria-label={`Ir a foto ${i + 1}`}
+              />
             ))}
           </div>
         )}
       </div>
 
-      {/* Datos */}
+      {/* ── Datos ── */}
       <div className="p-5 flex flex-col flex-1">
         <p className="text-xs font-bold text-brand-red uppercase tracking-widest mb-1">
           {auto.marca}
@@ -183,7 +208,7 @@ function AutoCard({ auto }: { auto: Auto }) {
           ))}
         </div>
 
-        {/* Botón */}
+        {/* ── Botón ── */}
         {auto.vendido ? (
           <div className="mt-auto w-full flex items-center justify-center gap-2 bg-gray-200 text-gray-400 font-bold text-sm py-3 px-4 rounded-xl cursor-not-allowed select-none">
             ✓ Este auto ya fue vendido
